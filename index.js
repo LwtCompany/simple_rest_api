@@ -3,17 +3,69 @@ const app = express();
 
 const port = 3000;
 
-app.get("/", (req, res) => {
-    res.json("Salom hammagaaaaaaaaaaaaaaaa")
+const fs = require("fs");
+
+let dataUsers;
+
+fs.readFile("data.json", (err, data) => {
+    if(err)
+        console.log(err);
+    else{
+        dataUsers = JSON.parse(data)
+    }
+        
 });
 
-app.post("/", (req, res) => {
-    res.send("Mani atvetim postga")
+
+
+
+app.get('/users', (req, res) => {
+    const {id} = req.query;
+    let final_result = dataUsers;
+    if(id){
+        let result = dataUsers.find((val, ind) => {
+            if(val.id == id)
+                return val;
+        });
+        final_result = result;
+    }
+    res.send(final_result)
 })
-app.get("/user", (req, res) => {
-    res.json("Salom manga")
-});
-// console.log()
+
+app.put('/users', (req, res) => {
+    const {id, name} = req.query;
+    let final_result = dataUsers;
+    if(id){
+        let create_new = true;
+        dataUsers.forEach((val, ind) => {
+            if(val.id == id){
+                create_new  = false;
+                val.name = name;
+            }
+                
+        });
+        
+        if(create_new){
+            let new_users = {
+                "id": id,
+                "name": name
+            };
+
+            final_result.push(new_users);
+        }
+        fs.writeFile('data.json', JSON.stringify(final_result), function (err) {
+            if (err) throw err;
+            console.log('Replaced!');
+        });
+        res.send(final_result)
+    }else{
+        res.send("We haven't got id")
+    }
+    
+    
+})
+
+
 app.listen(port, () => {
     console.log(`server running on the port http://localhost:${port}`)
 })
